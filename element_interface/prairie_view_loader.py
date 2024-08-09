@@ -145,8 +145,8 @@ class PrairieViewMeta:
                                       self.meta["width_in_pixels"]],
                                      dtype=int)
             start_page = 0
-            try:
-                for input_file in tiff_names:
+            for input_file in tiff_names:
+                try:
                     with tifffile.TiffFile(self.prairieview_dir / input_file) as tffl:
                         # Get indices in this tiff file and in output array
                         final_page_in_file = start_page + len(tffl.pages)
@@ -160,20 +160,20 @@ class PrairieViewMeta:
                             # this line looks a bit ugly but is memory efficient. Do not separate
                             combined_data[global_indices] = tffl.asarray(key=file_indices)
                         start_page += len(tffl.pages)
-            except Exception as e:
-                raise Exception(f"Error in processing tiff file {input_file}: {e}")
+                except Exception as e:
+                    raise Exception(f"Error in processing tiff file {input_file}: {e}")
 
-            output_tiff_fullpath = (
-                    output_dir
-                    / f"{output_tiff_stem}.tif"
-            )
-            tifffile.imwrite(
-                output_tiff_fullpath,
-                combined_data,
-                metadata={"axes": "TYX", "'fps'": self.meta["frame_rate"]},
-                bigtiff=True,
-            )
-            output_tiff_list.append(output_tiff_fullpath)
+                output_tiff_fullpath = (
+                        output_dir
+                        / f"{output_tiff_stem}_{len(output_tiff_list):04}.tif"
+                )
+                tifffile.imwrite(
+                    output_tiff_fullpath,
+                    combined_data,
+                    metadata={"axes": "TYX", "'fps'": self.meta["frame_rate"]},
+                    bigtiff=True,
+                )
+                output_tiff_list.append(output_tiff_fullpath)
         else:
             while len(tiff_names):
                 output_tiff_fullpath = (
@@ -208,7 +208,7 @@ class PrairieViewMeta:
                             break
                     output_tiff_list.append(output_tiff_fullpath)
 
-        return output_tiff_list[0] if gb_per_file is None else output_tiff_list
+        return output_tiff_list[0] if len(output_tiff_list) == 1 else output_tiff_list
 
 
 def _extract_prairieview_metadata(xml_filepath: str):
